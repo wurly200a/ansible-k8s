@@ -1,0 +1,24 @@
+- name: Copy test.txt from k8s-ctrl1
+#  hosts: k8s_nodes
+#  hosts: control_planes
+  hosts: k8s-ctrl1
+#  become: true
+  tasks:
+    - name: Ensure test.txt exists on the remote host
+      stat:
+        path: ~/test.txt
+      register: test_file
+
+    - name: Fail if test.txt does not exist
+      fail:
+        msg: "The file ~/test.txt does not exist on the remote host."
+      when: not test_file.stat.exists
+
+    - name: Fetch test.txt to the local machine
+      fetch:
+        src: ~/test.txt
+        dest: ./test.txt
+        flat: yes
+
+# ansible-playbook -i inventory.yml playbooks/copy_test_file.yml --ask-become-pass
+# ansible-playbook -i inventory.yml playbooks/copy_test_file.yml

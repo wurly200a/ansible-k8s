@@ -1,0 +1,22 @@
+all:
+  children:
+    k8s_nodes:
+      children:
+        control_planes:
+          hosts:
+            k8s-ctrl1:
+              ansible_host: 192.168.10.11
+            k8s-ctrl2:
+              ansible_host: 192.168.10.12
+            k8s-ctrl3:
+              ansible_host: 192.168.10.13
+        workers:
+          hosts:
+            k8s-worker1:
+              ansible_host: 192.168.10.21
+            k8s-worker2:
+              ansible_host: 192.168.10.22
+            k8s-worker3:
+              ansible_host: 192.168.10.23
+  vars:
+    ansible_user: wurly

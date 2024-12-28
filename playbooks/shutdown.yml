@@ -1,0 +1,20 @@
+---
+- name: Shutdown worker nodes
+  hosts: workers
+  become: true
+  serial: 1
+  tasks:
+    - name: Shutdown the worker node
+      command: /sbin/shutdown -h now
+      ignore_errors: true
+
+- name: Shutdown control plane nodes
+  hosts: control_planes
+  become: true
+  serial: 1
+  tasks:
+    - name: Shutdown the control plane node
+      command: /sbin/shutdown -h now
+      ignore_errors: true
+
+# ansible-playbook -i inventory.yml playbooks/shutdown.yml --ask-become-pass

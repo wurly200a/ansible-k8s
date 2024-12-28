@@ -1,0 +1,49 @@
+- name: Backup etcd from k8s-ctrl1
+  hosts: k8s-ctrl1
+  become: true
+  tasks:
+    - name: Ensure etcdctl is available
+      command: which etcdctl
+      register: etcdctl_check
+      failed_when: etcdctl_check.rc != 0
+      changed_when: false
+
+    - name: Set etcdctl environment variables
+      set_fact:
+        etcdctl_env:
+          ETCDCTL_API: "3"
+          ETCDCTL_CACERT: "/etc/kubernetes/pki/etcd/ca.crt"
+          ETCDCTL_CERT: "/etc/kubernetes/pki/etcd/server.crt"
+          ETCDCTL_KEY: "/etc/kubernetes/pki/etcd/server.key"
+
+    - name: Create backup directory
+      file:
+        path: /var/lib/etcd-backup
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Take etcd snapshot
+      command: >
+        etcdctl snapshot save /var/lib/etcd-backup/snapshot.db
+      environment: "{{ etcdctl_env }}"
+
+    - name: Verify the snapshot
+      command: >
+        etcdctl snapshot status /var/lib/etcd-backup/snapshot.db
+      environment: "{{ etcdctl_env }}"
+      register: snapshot_status
+
+    - name: Display snapshot status
+      debug:
+        var: snapshot_status.stdout
+
+    - name: Fetch the snapshot to the local machine
+      fetch:
+        src: /var/lib/etcd-backup/snapshot.db
+        dest: ./etcd-backup/snapshot.db
+        flat: yes
+
+# ansible-playbook -i inventory.yml playbooks/etcd_backup.yml --ask-become-pass
+
